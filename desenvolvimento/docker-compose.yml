@@ -25,6 +25,12 @@ services:
       - SERVICES=sqs,sns
     volumes:
       - localstack-data:/tmp/localstack
+    networks:
+      - localstack_network
+
+networks:
+  localstack_network:
+    driver: bridge
 
 volumes:
   mongo-data:
