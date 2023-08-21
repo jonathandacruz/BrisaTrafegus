@@ -1,0 +1,25 @@
+version: '3'
+services:
+  mongo:
+    build:
+      context: ./mongo
+      dockerfile: MongoDB.Dockerfile
+    container_name: mongodb-trafegus
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongo-data:/data/db
+
+  redis:
+    build:
+      context: ./redis
+      dockerfile: RedisDB.Dockerfile
+    container_name: redisdb-trafegus
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis-data:/data
+
+volumes:
+  mongo-data:
+  redis-data:
