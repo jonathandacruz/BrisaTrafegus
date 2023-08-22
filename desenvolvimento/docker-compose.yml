@@ -7,6 +7,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - mongo_network
 
   redis:
     image: redis:latest
@@ -35,6 +37,8 @@ services:
       container_name: flask-app-trafegus
       ports:
         - "5005:5005"
+      volumes:
+         - ./src:/src
       depends_on:
         - mongo
         - redis
@@ -42,11 +46,14 @@ services:
       networks:
         - localstack_network
         - redis_network
+        - mongo_network
 
 networks:
   redis_network:
     driver: bridge
   localstack_network:
+    driver: bridge
+  mongo_network:
     driver: bridge
 
 volumes:
