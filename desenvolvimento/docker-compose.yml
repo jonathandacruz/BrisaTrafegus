@@ -28,6 +28,19 @@ services:
     networks:
       - localstack_network
 
+  app:
+      build:
+        context: ./src  # Diretório da sua aplicação Flask
+      container_name: flask-app-trafegus
+      ports:
+        - "5005:5005"  # Mapeie a porta do host para a porta do container onde sua aplicação Flask está escutando
+      depends_on:
+        - mongo  # Dependência do MongoDB
+        - redis  # Dependência do Redis
+        - localstack  # Dependência do LocalStack
+      networks:
+        - localstack_network
+
 networks:
   localstack_network:
     driver: bridge
