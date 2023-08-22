@@ -1,0 +1,10 @@
+from pymongo import MongoClient
+from flask import current_app
+
+def get_mongo_db():
+    return current_app.mongo.db
+
+def init_mongo_db(app):
+    app.config['MONGO_URI'] = 'mongodb://mongo:27017/mongodb-trafegus'
+    app.mongo = MongoClient(app.config['MONGO_URI'])
+    app.db = app.mongo.trafegus

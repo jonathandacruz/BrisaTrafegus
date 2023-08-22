@@ -7,6 +7,8 @@ services:
       - "27017:27017"
     volumes:
       - mongo-data:/data/db
+    networks:
+      - mongo_network
 
   redis:
     image: redis:latest
@@ -42,11 +44,14 @@ services:
       networks:
         - localstack_network
         - redis_network
+        - mongo_network
 
 networks:
   redis_network:
     driver: bridge
   localstack_network:
+    driver: bridge
+  mongo_network:
     driver: bridge
 
 volumes:
