@@ -1,6 +1,11 @@
-FROM python:3
-RUN apt-get update && apt-get -y install ghostscript poppler-utils && apt-get clean
-COPY . .
+FROM python:3.10
+
 WORKDIR /src
-RUN pip install --upgrade pip
+
+COPY src/requirements.txt .
+
 RUN pip install -r requirements.txt
+
+COPY src/main.py .
+
+CMD ["python3", "main.py"]
