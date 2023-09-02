@@ -1,16 +1,19 @@
 from flask import Blueprint, jsonify, current_app
 from app.utils.mongodb import get_mongo_db
 from app.utils.redisdb import get_redis_connection
+from app.routes.auth_routes import token_required
 
 main_bp = Blueprint('main', __name__)
 
 @main_bp.route('/get_cargas')
-def get_cargas():
+@token_required
+def get_cargas(identity: str):
+    current_app.logger.info(f'User {identity} is requesting cargas')
     db = get_mongo_db()
     sample_data = {'nome': 'Exemplo', 'idade': 25}
-    db.collection.insert_one(sample_data)
+    db.cargas.insert_one(sample_data)
 
-    data = db.collection.find_one({'nome': 'Exemplo'})
+    data = db.cargas.find_one({'nome': 'Exemplo'})
 
     return f'Nome: {data["nome"]}, Idade: {data["idade"]}'
 
