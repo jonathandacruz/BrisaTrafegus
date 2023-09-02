@@ -10,3 +10,4 @@ flask-jwt-extended
 pyjwt
 bcrypt
 flask_bcrypt
+pipdeptree
