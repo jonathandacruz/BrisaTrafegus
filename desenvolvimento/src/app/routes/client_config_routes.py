@@ -1,3 +1,5 @@
+import logging
+
 from bson import json_util, ObjectId
 import json
 import uuid
@@ -81,12 +83,23 @@ def create_client_config(identity: str):
         'regras': regras
     }
 
-    todosCodigos = []
+    config_redis = redis.lrange(empresa_id, 0, -1)
+    config_redis = [valor.decode('utf-8') for valor in config_redis]
+
+    codigos_config = []
 
     for regra in regras:
         for codigos in regra.get('codigos'):
-            todosCodigos.append(str(codigos))
+            codigos_config.append(str(codigos))
 
-    redis.lpush(empresa_id, *todosCodigos)
+    conjunto_config_redis = set(config_redis)
+    conjunto_codigos_config = set(codigos_config)
+
+    diferenca_entre_configs = conjunto_codigos_config - conjunto_config_redis
+
+    lista_diferenca = list(diferenca_entre_configs)
+
+    if lista_diferenca != []:
+        redis.lpush(empresa_id, *lista_diferenca)
 
     return jsonify(response_data), 201
