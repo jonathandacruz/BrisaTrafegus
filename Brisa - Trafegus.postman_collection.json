@@ -7,221 +7,409 @@
 	},
 	"item": [
 		{
-			"name": "API - Registrar",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"maiki\",\n    \"password\": \"maiki\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Auth",
+			"item": [
+				{
+					"name": "API - Registrar",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"name\": \"maiki\",\n    \"email\": \"maiki@maiki.com\",\n    \"password\": \"maiki\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/registrar",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"registrar"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "localhost:5005/signup",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"signup"
-					]
+				{
+					"name": "API - Login",
+					"request": {
+						"auth": {
+							"type": "noauth"
+						},
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"email\": \"maiki@maiki.com\",\n    \"password\": \"maiki\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/login",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"login"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "API - Login",
-			"request": {
-				"method": "POST",
-				"header": [],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"maiki\",\n    \"password\": \"maiki\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Config",
+			"item": [
+				{
+					"name": "API - Criar Config",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"empresaId\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"tipo\": \"FURTO\",\n    \"regras\": [\n        {\n            \"porcentagem\": \"10\",\n            \"codigos\": [12, 11, 15]\n        },\n        {\n            \"porcentagem\": \"20\",\n            \"codigos\": [17]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/configs",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"configs"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "localhost:5005/login",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"login"
-					]
+				{
+					"name": "API - Listar Configs",
+					"request": {
+						"method": "GET",
+						"header": [],
+						"url": {
+							"raw": "localhost:8080/api/configs",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"configs"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API - Enviar Log",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"empresaId\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"viagemId\": \"1860b8fd-be38-4233-b1a1-1918e170523f\",\n    \"motoristaId\": \"56548a3c-214d-43f8-8740-dd26b7852c46\",\n    \"codigo\": 17\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/poc",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"poc"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API - Listar Config ID",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"empresa_id\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"tipo\": \"FURTO\",\n    \"regras\": [\n        {\n            \"porcentagem\": \"10\",\n            \"codigos\": [10, 11, 12]\n        },\n        {\n            \"porcentagem\": \"20\",\n            \"codigos\": [13]\n        }\n    ]\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/configs/ID",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"configs",
+								"ID"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "API - Criar Config",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM5NDI1MTksImlhdCI6MTY5MzY4MzMxOSwic3ViIjoibWFpa2kifQ.FFmd0g1h4TCEfEqoLq3v90T6ESE570X5ZVSUpJOc0QM",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"empresa_id\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"tipo\": \"FURTO\",\n    \"regras\": [\n        {\n            \"porcentagem\": \"10\",\n            \"codigos\": [12, 11, 15]\n        },\n        {\n            \"porcentagem\": \"20\",\n            \"codigos\": [17]\n        }\n    ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Eventos",
+			"item": [
+				{
+					"name": "API - Resetar eventos",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"username\": \"maiki\",\n    \"password\": \"maiki\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:5005/resetar-eventos",
+							"host": [
+								"localhost"
+							],
+							"port": "5005",
+							"path": [
+								"resetar-eventos"
+							]
 						}
-					}
-				},
-				"url": {
-					"raw": "localhost:5005/client-config",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"client-config"
-					]
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "API - Enviar Log",
-			"request": {
-				"method": "POST",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM5NDI1MTksImlhdCI6MTY5MzY4MzMxOSwic3ViIjoibWFpa2kifQ.FFmd0g1h4TCEfEqoLq3v90T6ESE570X5ZVSUpJOc0QM",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"empresa_id\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"codigo\": 17\n}",
-					"options": {
-						"raw": {
-							"language": "json"
+			"name": "Viagens",
+			"item": [
+				{
+					"name": "API - Listar viagens",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/viagens",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"viagens"
+							]
 						}
-					}
+					},
+					"response": []
 				},
-				"url": {
-					"raw": "localhost:5005/receber_log",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"receber_log"
-					]
+				{
+					"name": "API - Listar viagens ID",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/viagens/a711e799-cf90-4847-b4f4-aa4761c4693d",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"viagens",
+								"a711e799-cf90-4847-b4f4-aa4761c4693d"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API - Criar viagem",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"empresaId\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"caminhao\": \"5b7b05e5-374f-47c8-846e-56ff772005e2\",\n    \"rota\": \"9d8fcbd6-97cf-49a2-95fa-c4055855030f\",\n    \"motorista\": \"a711e799-cf90-4847-b4f4-aa4761c4693d\",\n    \"riscoAtual\": 0,\n    \"predicaoMachineLearning\": 0,\n    \"sinistro\": false,\n    \"regra\" : [],\n    \"inicioViagem\": \"2023-09-10T17:08:15.622384788\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/viagens",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"viagens"
+							]
+						}
+					},
+					"response": []
+				},
+				{
+					"name": "API - Viagem - SInistro",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"sinistro\": true\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/viagens/ad076260-a364-468a-9dac-c4567b4ce69a/sinistro",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"viagens",
+								"ad076260-a364-468a-9dac-c4567b4ce69a",
+								"sinistro"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
 		},
 		{
-			"name": "API - Listar Configs",
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM5NDI1MTksImlhdCI6MTY5MzY4MzMxOSwic3ViIjoibWFpa2kifQ.FFmd0g1h4TCEfEqoLq3v90T6ESE570X5ZVSUpJOc0QM",
-						"type": "text"
-					}
-				],
-				"url": {
-					"raw": "localhost:5005/client-config",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"client-config"
-					]
+			"name": "Database",
+			"item": [
+				{
+					"name": "DANGER!!! Clear Mongo and Redis",
+					"protocolProfileBehavior": {
+						"disableBodyPruning": true
+					},
+					"request": {
+						"method": "GET",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "localhost:8080/api/database/clear",
+							"host": [
+								"localhost"
+							],
+							"port": "8080",
+							"path": [
+								"api",
+								"database",
+								"clear"
+							]
+						}
+					},
+					"response": []
 				}
-			},
-			"response": []
+			]
+		}
+	],
+	"auth": {
+		"type": "bearer",
+		"bearer": [
+			{
+				"key": "token",
+				"value": "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYWlraUBtYWlraS5jb20iLCJpYXQiOjE2OTQ4NzA2MDYsImV4cCI6MTY5NTEyOTgwNn0.JtbGVMYj9BUIc1rsolvQtxkhHDVf_3Yi2NLv2ZR9fok",
+				"type": "string"
+			}
+		]
+	},
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		},
 		{
-			"name": "API - Listar Config ID",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM5NDI1MTksImlhdCI6MTY5MzY4MzMxOSwic3ViIjoibWFpa2kifQ.FFmd0g1h4TCEfEqoLq3v90T6ESE570X5ZVSUpJOc0QM",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"empresa_id\": \"621c93ce-e8b8-4255-876f-b39568bf48cd\",\n    \"tipo\": \"FURTO\",\n    \"regras\": [\n        {\n            \"porcentagem\": \"10\",\n            \"codigos\": [10, 11, 12]\n        },\n        {\n            \"porcentagem\": \"20\",\n            \"codigos\": [13]\n        }\n    ]\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "localhost:5005/client-config/ID",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"client-config",
-						"ID"
-					]
-				}
-			},
-			"response": []
-		},
-		{
-			"name": "API - Resetar eventos",
-			"protocolProfileBehavior": {
-				"disableBodyPruning": true
-			},
-			"request": {
-				"method": "GET",
-				"header": [
-					{
-						"key": "Authorization",
-						"value": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJleHAiOjE2OTM5Mzk5NTcsImlhdCI6MTY5MzY4MDc1Nywic3ViIjoibWFpa2kifQ.gQd1L2pjUU5WTZQQZ7DqQpJGxM1n3jMNFGUGK7wQOdY",
-						"type": "text"
-					}
-				],
-				"body": {
-					"mode": "raw",
-					"raw": "{\n    \"username\": \"maiki\",\n    \"password\": \"maiki\"\n}",
-					"options": {
-						"raw": {
-							"language": "json"
-						}
-					}
-				},
-				"url": {
-					"raw": "localhost:5005/resetar-eventos",
-					"host": [
-						"localhost"
-					],
-					"port": "5005",
-					"path": [
-						"resetar-eventos"
-					]
-				}
-			},
-			"response": []
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
 		}
 	]
 }
