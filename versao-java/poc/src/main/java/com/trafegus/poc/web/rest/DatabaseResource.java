@@ -1,5 +1,6 @@
 package com.trafegus.poc.web.rest;
 
+import com.trafegus.poc.model.ClientConfigRedis;
 import com.trafegus.poc.repository.ClientConfigRedisRepository;
 import com.trafegus.poc.repository.ClientConfigRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -28,6 +29,13 @@ public class DatabaseResource {
         clientConfigRepository.deleteAll();
         clientConfigRedisRepository.deleteAll();
         return ResponseEntity.ok().body(true);
+    }
+
+    @GetMapping("/database/redis")
+    public ResponseEntity<ClientConfigRedis> getAllRedisConfigs() {
+        log.info("Rest request for listing redis configs");
+        ClientConfigRedis clientConfigRedis = clientConfigRedisRepository.findAll().iterator().next();
+        return ResponseEntity.ok().body(clientConfigRedis);
     }
 
 }

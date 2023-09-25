@@ -12,4 +12,6 @@ public interface ClientConfigRedisService {
     ClientConfigRedis createOne(ClientConfig clientConfig);
 
     ClientConfigRedis updateOne(ClientConfig clientConfig, ClientConfigRedis existingRedisConfig);
+
+    Boolean deleteOneConfig(UUID id, ClientConfig clientConfig);
 }

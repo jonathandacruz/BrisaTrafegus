@@ -17,6 +17,7 @@ public class ClientConfigRedis {
 
     @Id
     private UUID id;
+    private List<ClientConfig> configuracoes;
     private List<Integer> codigosImportantes;
 
 }

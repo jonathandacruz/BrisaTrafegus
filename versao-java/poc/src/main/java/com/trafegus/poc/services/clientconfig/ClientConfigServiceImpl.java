@@ -30,4 +30,14 @@ public class ClientConfigServiceImpl implements ClientConfigService {
         return clientConfigRepository.save(clientConfig);
     }
 
+    @Override
+    public Boolean deleteOne(UUID id) {
+        try {
+            clientConfigRepository.deleteById(id);
+        } catch (Exception e) {
+            return false;
+        }
+        return true;
+    }
+
 }

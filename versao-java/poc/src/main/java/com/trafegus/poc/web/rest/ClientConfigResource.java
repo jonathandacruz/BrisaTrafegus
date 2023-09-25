@@ -5,9 +5,11 @@ import com.trafegus.poc.model.ClientConfigRedis;
 import com.trafegus.poc.services.clientconfig.ClientConfigRedisServiceImpl;
 import com.trafegus.poc.services.clientconfig.ClientConfigServiceImpl;
 import lombok.extern.slf4j.Slf4j;
+import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.validation.annotation.Validated;
+import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
@@ -76,6 +78,22 @@ public class ClientConfigResource {
         }
 
         return ResponseEntity.ok().body(createdClientConfig);
+    }
+
+    @DeleteMapping("/configs/{id}")
+    public ResponseEntity<Boolean> deleteConfigEndpoint(@PathVariable UUID id) {
+        log.info("Rest request for deleting client config with id: {}", id.toString());
+
+        ClientConfig clientConfig = clientConfigService.findOne(id);
+
+        Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
+        Boolean mongoDeleted = clientConfigService.deleteOne(id);
+
+        if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {
+            return ResponseEntity.noContent().build();
+        } else {
+            return ResponseEntity.notFound().build();
+        }
     }
 
 }

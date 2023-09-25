@@ -10,5 +10,6 @@ public interface ClientConfigService {
     List<ClientConfig> findAll();
     ClientConfig findOne(UUID id);
     ClientConfig createOne(ClientConfig clientConfig);
+    Boolean deleteOne(UUID id);
 
 }
