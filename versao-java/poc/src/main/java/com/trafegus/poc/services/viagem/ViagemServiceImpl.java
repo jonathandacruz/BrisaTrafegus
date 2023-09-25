@@ -27,6 +27,7 @@ public class ViagemServiceImpl implements ViagemService {
     @Override
     public Viagem createOne(Viagem viagem) {
         viagem.setId(UUID.randomUUID());
+        viagem.setRegrasQuebradas(List.of());
         return viagemRepository.save(viagem);
     }
 

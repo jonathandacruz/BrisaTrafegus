@@ -24,9 +24,9 @@ public class PocResource {
     public ResponseEntity<Boolean> receberLogsEndpoint(@RequestBody Log logReceived) {
         log.info("Rest request for receiving logs");
 
-        this.pocService.processLog(logReceived);
+        Boolean shouldProcess = this.pocService.processLog(logReceived);
 
-        return ResponseEntity.ok().body(true);
+        return ResponseEntity.ok().body(shouldProcess);
     }
 
 }

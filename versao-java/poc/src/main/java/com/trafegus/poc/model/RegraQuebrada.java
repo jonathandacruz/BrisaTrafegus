@@ -13,6 +13,7 @@ import java.util.UUID;
 public class RegraQuebrada {
 
     private UUID regraQuebradaId;
+    private String tipoRegra;
     private List<Integer> codigosRegrasQuebradas;
     private Integer riscoRegrasQuebradas;
 

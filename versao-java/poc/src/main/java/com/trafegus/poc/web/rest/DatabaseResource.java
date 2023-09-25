@@ -3,6 +3,7 @@ package com.trafegus.poc.web.rest;
 import com.trafegus.poc.model.ClientConfigRedis;
 import com.trafegus.poc.repository.ClientConfigRedisRepository;
 import com.trafegus.poc.repository.ClientConfigRepository;
+import com.trafegus.poc.repository.ViagemRepository;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
@@ -23,11 +24,15 @@ public class DatabaseResource {
     @Autowired
     private ClientConfigRedisRepository clientConfigRedisRepository;
 
+    @Autowired
+    private ViagemRepository viagemRepository;
+
     @GetMapping("/database/clear")
     public ResponseEntity<Boolean> clearDatabaseEndpoint() {
         log.info("Rest request for clearing database");
         clientConfigRepository.deleteAll();
         clientConfigRedisRepository.deleteAll();
+        viagemRepository.deleteAll();
         return ResponseEntity.ok().body(true);
     }
 
