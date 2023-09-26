@@ -51,12 +51,13 @@ public class PocServiceImpl implements PocService{
                     viagem.setUltimaRegraQuebrada(LocalDateTime.now());
                     List<RegraQuebrada> regrasQuebradas = new ArrayList<>();
                     clientConfigs.forEach(config -> {
-                        RegraQuebrada regraQuebrada = new RegraQuebrada(null, null, new ArrayList<>(), null);
+                        RegraQuebrada regraQuebrada = new RegraQuebrada(null, null, null, new ArrayList<>(), null);
                         config.getRegras().forEach(regra -> {
                             if (regra.getCodigos().contains(logRecebido.getCodigo())) {
                                 log.info("Regra quebrada encontrada = [{}]", regra);
                                 regraQuebrada.setRegraQuebradaId(config.getId());
                                 regraQuebrada.setTipoRegra(config.getTipo());
+                                regraQuebrada.setDataHoraRegraQuebrada(LocalDateTime.now());
                                 regraQuebrada.getCodigosRegrasQuebradas().add(logRecebido.getCodigo());
                                 regraQuebrada.setRiscoRegrasQuebradas(
                                         Integer.valueOf(regra.getPorcentagem()));
@@ -69,8 +70,9 @@ public class PocServiceImpl implements PocService{
                     viagem.getRegrasQuebradas().addAll(regrasQuebradas);
 
                     viagem.getRegrasQuebradas().forEach(regraQuebrada -> {
-                        if (regraQuebrada.getRiscoRegrasQuebradas() > viagem.getRiscoAtual()) {
-                            viagem.setRiscoAtual(regraQuebrada.getRiscoRegrasQuebradas());
+                        if (regraQuebrada.getRiscoRegrasQuebradas() > viagem.getRiscoAtualPorcentagem()) {
+                            viagem.setRiscoAtualPorcentagem(regraQuebrada.getRiscoRegrasQuebradas());
+                            viagem.setRiscoAtualTipoSinistro(regraQuebrada.getTipoRegra());
                         }
                     });
                     log.info("Viagem atualizada = [{}]", viagem);

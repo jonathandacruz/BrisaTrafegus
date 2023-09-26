@@ -24,7 +24,8 @@ public class Viagem {
     private UUID caminhao;
     private UUID rota;
     private UUID motorista;
-    private Integer riscoAtual;
+    private Integer riscoAtualPorcentagem;
+    private String riscoAtualTipoSinistro;
     private Integer predicaoMachineLearning;
     private boolean sinistro;
     private LocalDateTime ultimaRegraQuebrada;
