@@ -2,6 +2,7 @@ plugins {
 	id 'java'
 	id 'org.springframework.boot' version '3.1.3'
 	id 'io.spring.dependency-management' version '1.1.3'
+	id 'com.google.cloud.tools.jib' version '3.1.4'
 }
 
 group = 'com.trafegus'
@@ -16,6 +17,24 @@ configurations {
 		extendsFrom annotationProcessor
 	}
 }
+
+jib {
+	from {
+		image = 'openjdk:17-alpine'
+	}
+	to {
+		image = 'USUARIO-DO-DOCKER-HUB/NOME-DA-IMAGEM'
+		tags = ['VERSAO-DA-IMAGEM']
+	}
+	container {
+		jvmFlags = ['-Xmx512m', '-Xms256m']
+	}
+}
+
+/* 1. Trocar versão do java na máquina para 17 */
+/* 2. Buildar a imagem usando ./gradlew jibDockerBuild */
+/* 3. Configurar credenciais do dockerhub */
+/* 4. Subir a imagem para o dockerhub usando docker push USUARIO-DO-DOCKER-HUB/NOME-DA-IMAGEM:VERSAO-DA-IMAGEM */
 
 repositories {
 	mavenCentral()
