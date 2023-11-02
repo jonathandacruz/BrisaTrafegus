@@ -43,7 +43,7 @@ public class PocServiceImpl implements PocService{
 
                 List<ClientConfig> clientConfigs =
                         this.clientConfigRepository.findClientConfigByRegrasContaining(logRecebido.getCodigo());
-                Optional<Viagem> viagemOptional = viagemRepository.findById(logRecebido.getViagemId());
+                Optional<Viagem> viagemOptional = viagemRepository.findByCodigoViagem(logRecebido.getCodigoViagem());
 
                 if (viagemOptional.isPresent() && !clientConfigs.isEmpty()) {
                     log.info("Viagem encontrada, verificando regra quebrada...");

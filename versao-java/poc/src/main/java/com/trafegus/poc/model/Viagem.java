@@ -1,5 +1,6 @@
 package com.trafegus.poc.model;
 
+import com.fasterxml.jackson.annotation.JsonProperty;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -21,9 +22,10 @@ public class Viagem {
     @Id
     private UUID id;
     private UUID empresaId;
-    private UUID caminhao;
-    private UUID rota;
-    private UUID motorista;
+    @JsonProperty("esis_oras_codigo")
+    private String placaVeiculo;
+    @JsonProperty("esis_viag_codigo")
+    private String codigoViagem;
     private Integer riscoAtualPorcentagem;
     private String riscoAtualTipoSinistro;
     private Integer predicaoMachineLearning;
