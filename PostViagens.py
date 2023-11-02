@@ -3,14 +3,11 @@ import requests
 
 token = "eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJtYWlraUBtYWlraS5jb20iLCJpYXQiOjE2OTg5NDUxMTcsImV4cCI6MTY5OTIwNDMxN30.bVHJFwdu0gSR4-m4jMYIqkqArZkLNssF4-eHBZT3CUY"
 
-# Carregando os dados do arquivo JSON
 with open('viagens-id-e-placa-veiculo.json', 'r') as json_file:
     dados = json.load(json_file)
 
-# Defina a URL para onde deseja enviar as solicitações POST
 url = 'http://localhost:8080/api/viagens'
 
-# Iterando pelos dados e fazendo solicitações POST
 for item in dados:
     payload = {
         "empresaId": "621c93ce-e8b8-4255-876f-b39568bf48cd",
