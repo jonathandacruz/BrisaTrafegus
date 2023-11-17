@@ -23,8 +23,8 @@ jib {
 		image = 'openjdk:17-alpine'
 	}
 	to {
-		image = 'USUARIO-DO-DOCKER-HUB/NOME-DA-IMAGEM'
-		tags = ['VERSAO-DA-IMAGEM']
+		image = 'maikimarolliperuzzo/brisa-poc'
+		tags = ['v1.0']
 	}
 	container {
 		jvmFlags = ['-Xmx512m', '-Xms256m']
@@ -48,6 +48,7 @@ dependencies {
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-security'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
+	implementation 'org.springframework.boot:spring-boot-starter-validation'
 	compileOnly 'org.projectlombok:lombok'
 	developmentOnly 'org.springframework.boot:spring-boot-devtools'
 	annotationProcessor 'org.projectlombok:lombok'
@@ -58,6 +59,11 @@ dependencies {
 	implementation "io.jsonwebtoken:jjwt-api:0.11.5"
 	implementation "io.jsonwebtoken:jjwt-impl:0.11.5"
 	implementation "io.jsonwebtoken:jjwt-jackson:0.11.5"
+
+	/* VALIDAÇÃO DE CPF */
+	implementation 'br.com.caelum.stella:caelum-stella-core:2.1.6'
+	/* MODELMAPPER FROM DTO TO ENTITY */
+	implementation 'org.modelmapper:modelmapper:2.1.1'
 }
 
 tasks.named('test') {
