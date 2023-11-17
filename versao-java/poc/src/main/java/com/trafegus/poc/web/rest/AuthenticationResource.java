@@ -54,7 +54,7 @@ public class AuthenticationResource {
 
         UserDTO usuario = this.authService.findUserByUsername(authenticationDTO.getUsername());
 
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername());
+        final String jwt = jwtUtil.generateToken(userDetails.getUsername(), usuario.getEmpresaCNPJ());
 
         return ResponseEntity.ok().body(new AuthenticationResponse(jwt, usuario));
 
