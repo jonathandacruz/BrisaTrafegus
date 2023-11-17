@@ -23,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -50,8 +51,9 @@ public class ClientConfigResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_READ)) {
 
@@ -60,7 +62,11 @@ public class ClientConfigResource {
             if (clientConfig == null) {
                 return ResponseEntity.notFound().build();
             } else {
-                return ResponseEntity.ok().body(clientConfig);
+                if (Objects.equals(clientConfig.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                    return ResponseEntity.ok().body(clientConfig);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             }
         } else {
             log.info("Usuário não possui permissão para listar viagens.");
@@ -75,8 +81,8 @@ public class ClientConfigResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_READ)) {
 
@@ -85,6 +91,14 @@ public class ClientConfigResource {
             if (clientConfigs.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
+                clientConfigs.forEach(clientConfig -> {
+                    if (!Objects.equals(clientConfig.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                        clientConfigs.remove(clientConfig);
+                    }
+                });
+                if (clientConfigs.isEmpty()) {
+                    return ResponseEntity.notFound().build();
+                }
                 return ResponseEntity.ok().body(clientConfigs);
             }
         } else {
@@ -138,18 +152,21 @@ public class ClientConfigResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_DELETE)) {
 
             ClientConfig clientConfig = clientConfigService.findOne(id);
+            if (Objects.equals(clientConfig.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
+                Boolean mongoDeleted = clientConfigService.deleteOne(id);
 
-            Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
-            Boolean mongoDeleted = clientConfigService.deleteOne(id);
-
-            if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {
-                return ResponseEntity.noContent().build();
+                if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {
+                    return ResponseEntity.noContent().build();
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             } else {
                 return ResponseEntity.notFound().build();
             }

@@ -16,10 +16,12 @@ import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.UUID;
 
@@ -44,8 +46,9 @@ public class ViagemResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.VIAGEM_READ)) {
             Viagem viagem = viagemService.findOne(id);
@@ -53,7 +56,11 @@ public class ViagemResource {
             if (viagem == null) {
                 return ResponseEntity.notFound().build();
             } else {
-                return ResponseEntity.ok().body(viagem);
+                if (Objects.equals(viagem.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                    return ResponseEntity.ok().body(viagem);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             }
         } else {
             log.info("Usuário não possui permissão para listar viagens.");
@@ -68,8 +75,9 @@ public class ViagemResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.VIAGEM_READ)) {
             List<Viagem> viagens = viagemService.findAll();
@@ -77,6 +85,11 @@ public class ViagemResource {
             if (viagens.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
+                viagens.forEach(viagem -> {
+                    if (!Objects.equals(viagem.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                        viagens.remove(viagem);
+                    }
+                });
                 return ResponseEntity.ok().body(viagens);
             }
         } else {
@@ -113,13 +126,19 @@ public class ViagemResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
-        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.VIAGEM_UPDATE)) {
-            Viagem viagem = viagemService.marcarViagemComoSinistro(id);
+        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) ||
+                permissoesUsuario.contains(PermissaoEnum.VIAGEM_UPDATE)) {
 
-            return ResponseEntity.ok().body(viagem);
+            Viagem viagem = viagemService.findOne(id);
+            if (Objects.equals(viagem.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
+                Viagem viagemSinistro = viagemService.marcarViagemComoSinistro(id);
+                return ResponseEntity.ok().body(viagemSinistro);
+            } else {
+                return null;
+            }
         } else {
             log.info("Usuário não possui permissão para marcar viagens como sinistro.");
             throw new MissingPermissionsException("Usuário não possui permissão para marcar viagens como sinistro.");
