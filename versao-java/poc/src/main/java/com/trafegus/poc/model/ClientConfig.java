@@ -21,6 +21,7 @@ public class ClientConfig {
     @Id
     private UUID id;
     private UUID empresaId;
+    private String empresaCNPJ;
     private String tipo;
     private List<Regras> regras;
 

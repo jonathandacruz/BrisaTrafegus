@@ -22,6 +22,7 @@ public class Viagem {
     @Id
     private UUID id;
     private UUID empresaId;
+    private String empresaCNPJ;
     @JsonProperty("esis_oras_codigo")
     private String placaVeiculo;
     @JsonProperty("esis_viag_codigo")

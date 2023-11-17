@@ -1,13 +1,18 @@
 package com.trafegus.poc.web.rest;
 
+import com.trafegus.poc.dto.UserDTO;
 import com.trafegus.poc.model.ClientConfig;
 import com.trafegus.poc.model.ClientConfigRedis;
+import com.trafegus.poc.model.PermissaoEnum;
+import com.trafegus.poc.services.auth.AuthServiceImpl;
 import com.trafegus.poc.services.clientconfig.ClientConfigRedisServiceImpl;
 import com.trafegus.poc.services.clientconfig.ClientConfigServiceImpl;
+import com.trafegus.poc.web.exceptions.MissingPermissionsException;
 import lombok.extern.slf4j.Slf4j;
-import org.apache.coyote.Response;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
+import org.springframework.security.core.context.SecurityContextHolder;
 import org.springframework.validation.annotation.Validated;
 import org.springframework.web.bind.annotation.DeleteMapping;
 import org.springframework.web.bind.annotation.GetMapping;
@@ -18,6 +23,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Slf4j
@@ -32,16 +38,33 @@ public class ClientConfigResource {
     @Autowired
     private ClientConfigRedisServiceImpl clientConfigRedisService;
 
+    @Autowired
+    private AuthServiceImpl authService;
+
+    private static final String USUARIO_LOGADO_LOG_MESSAGE = "USUARIO LOGADO: {}";
+
     @GetMapping("/configs/{id}")
     public ResponseEntity<ClientConfig> getOneConfigEndpoint(@PathVariable UUID id) {
         log.info("Rest request for listing client config with id: {}", id.toString());
 
-        ClientConfig clientConfig = clientConfigService.findOne(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        if (clientConfig == null) {
-            return ResponseEntity.notFound().build();
+        Set<PermissaoEnum> permissoesUsuario =
+                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+
+        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_READ)) {
+
+            ClientConfig clientConfig = clientConfigService.findOne(id);
+
+            if (clientConfig == null) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.ok().body(clientConfig);
+            }
         } else {
-            return ResponseEntity.ok().body(clientConfig);
+            log.info("Usuário não possui permissão para listar viagens.");
+            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
         }
     }
 
@@ -49,12 +72,24 @@ public class ClientConfigResource {
     public ResponseEntity<List<ClientConfig>> getAllConfigsEndpoint() {
         log.info("Rest request for listing client configs");
 
-        List<ClientConfig> clientConfigs = clientConfigService.findAll();
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        if (clientConfigs.isEmpty()) {
-            return ResponseEntity.notFound().build();
+        Set<PermissaoEnum> permissoesUsuario =
+                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+
+        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_READ)) {
+
+            List<ClientConfig> clientConfigs = clientConfigService.findAll();
+
+            if (clientConfigs.isEmpty()) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.ok().body(clientConfigs);
+            }
         } else {
-            return ResponseEntity.ok().body(clientConfigs);
+            log.info("Usuário não possui permissão para listar viagens.");
+            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
         }
     }
 
@@ -62,37 +97,65 @@ public class ClientConfigResource {
     public ResponseEntity<ClientConfig> createConfigEndpoint(@RequestBody ClientConfig clientConfig) {
         log.info("Rest request for creating client config: {}", clientConfig.toString());
 
-        ClientConfig createdClientConfig = clientConfigService.createOne(clientConfig);
-        log.info("Created config: {} in mongo.", createdClientConfig.toString());
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        ClientConfigRedis redisConfig = this.clientConfigRedisService.findOne(createdClientConfig.getEmpresaId());
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
 
-        if (redisConfig == null) {
-            ClientConfigRedis newRedisConfig = clientConfigRedisService.createOne(createdClientConfig);
-            log.info("Created config: {} in redis.", newRedisConfig.toString());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
+
+        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_WRITE)) {
+
+            clientConfig.setEmpresaCNPJ(usuario.getEmpresaCNPJ());
+
+            ClientConfig createdClientConfig = clientConfigService.createOne(clientConfig);
+            log.info("Created config: {} in mongo.", createdClientConfig.toString());
+
+            ClientConfigRedis redisConfig = this.clientConfigRedisService.findOne(createdClientConfig.getEmpresaId());
+
+            if (redisConfig == null) {
+                ClientConfigRedis newRedisConfig = clientConfigRedisService.createOne(createdClientConfig);
+                log.info("Created config: {} in redis.", newRedisConfig.toString());
+            } else {
+                log.info(createdClientConfig.toString());
+                log.info(redisConfig.toString());
+                ClientConfigRedis updatedRedisConfig =
+                        clientConfigRedisService.updateOne(createdClientConfig, redisConfig);
+                log.info("Updated config: {} in redis.", updatedRedisConfig.toString());
+            }
+
+            return ResponseEntity.ok().body(createdClientConfig);
         } else {
-            log.info(createdClientConfig.toString());
-            log.info(redisConfig.toString());
-            ClientConfigRedis updatedRedisConfig = clientConfigRedisService.updateOne(createdClientConfig, redisConfig);
-            log.info("Updated config: {} in redis.", updatedRedisConfig.toString());
+            log.info("Usuário não possui permissão para listar viagens.");
+            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
         }
-
-        return ResponseEntity.ok().body(createdClientConfig);
     }
 
     @DeleteMapping("/configs/{id}")
     public ResponseEntity<Boolean> deleteConfigEndpoint(@PathVariable UUID id) {
         log.info("Rest request for deleting client config with id: {}", id.toString());
 
-        ClientConfig clientConfig = clientConfigService.findOne(id);
+        Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
+        log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
-        Boolean mongoDeleted = clientConfigService.deleteOne(id);
+        Set<PermissaoEnum> permissoesUsuario =
+                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
 
-        if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {
-            return ResponseEntity.noContent().build();
+        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_DELETE)) {
+
+            ClientConfig clientConfig = clientConfigService.findOne(id);
+
+            Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
+            Boolean mongoDeleted = clientConfigService.deleteOne(id);
+
+            if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {
+                return ResponseEntity.noContent().build();
+            } else {
+                return ResponseEntity.notFound().build();
+            }
         } else {
-            return ResponseEntity.notFound().build();
+            log.info("Usuário não possui permissão para listar viagens.");
+            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
         }
     }
 
