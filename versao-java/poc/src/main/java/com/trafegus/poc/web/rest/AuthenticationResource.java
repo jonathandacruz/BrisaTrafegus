@@ -53,8 +53,13 @@ public class AuthenticationResource {
         final UserDetails userDetails = userDetailsService.loadUserByUsername(authenticationDTO.getUsername());
 
         UserDTO usuario = this.authService.findUserByUsername(authenticationDTO.getUsername());
+        String jwt = "";
 
-        final String jwt = jwtUtil.generateToken(userDetails.getUsername(), usuario.getEmpresaCNPJ());
+        if (authenticationDTO.getRememberMe()) {
+            jwt = jwtUtil.generateToken(userDetails.getUsername(), usuario.getEmpresaCNPJ(), 10L);
+        } else {
+            jwt = jwtUtil.generateToken(userDetails.getUsername(), usuario.getEmpresaCNPJ(), 1L);
+        }
 
         return ResponseEntity.ok().body(new AuthenticationResponse(jwt, usuario));
 

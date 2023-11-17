@@ -49,18 +49,19 @@ public class JwtUtil {
         return (username.equals(userDetails.getUsername()) && !isTokenExpired(token));
     }
 
-    public String generateToken(String userName, String empresaCNPJ) {
+    public String generateToken(String userName, String empresaCNPJ, Long rememberMe) {
         Map<String,Object> claims=new HashMap<>();
         claims.put("empresaCNPJ",empresaCNPJ);
-        return createToken(claims,userName);
+        return createToken(claims, userName, rememberMe);
     }
 
-    private String createToken(Map<String, Object> claims, String userName) {
+    private String createToken(Map<String, Object> claims, String userName, Long rememberMe) {
+        System.out.println((1000*60*60*24*3)*rememberMe);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userName)
                 .setIssuedAt(new Date(System.currentTimeMillis()))
-                .setExpiration(new Date(System.currentTimeMillis()+1000*60*60*24*3))
+                .setExpiration(new Date(System.currentTimeMillis()+(1000*60*60*24*3*rememberMe)))
                 .signWith(getSignKey(), SignatureAlgorithm.HS256).compact();
     }
 
