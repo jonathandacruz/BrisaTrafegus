@@ -56,7 +56,6 @@ public class JwtUtil {
     }
 
     private String createToken(Map<String, Object> claims, String userName, Long rememberMe) {
-        System.out.println((1000*60*60*24*3)*rememberMe);
         return Jwts.builder()
                 .setClaims(claims)
                 .setSubject(userName)
