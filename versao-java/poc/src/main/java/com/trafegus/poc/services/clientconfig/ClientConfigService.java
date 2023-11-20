@@ -7,7 +7,7 @@ import java.util.UUID;
 
 public interface ClientConfigService {
 
-    List<ClientConfig> findAll();
+    List<ClientConfig> findAll(String empresaCNPJ);
     ClientConfig findOne(UUID id);
     ClientConfig createOne(ClientConfig clientConfig);
     Boolean deleteOne(UUID id);

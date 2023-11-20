@@ -30,6 +30,10 @@ public class UsuarioResource {
     @Autowired
     private AuthServiceImpl authService;
 
+    private static final String USUARIO_SEM_PERISSAO_READ = "Usuário não possui permissão para listar usuários.";
+    private static final String USUARIO_SEM_PERISSAO_UPDATE = "Usuário não possui permissão para atualizar usuários.";
+    private static final String USUARIO_SEM_PERISSAO_DELETE = "Usuário não possui permissão para deletar usuários.";
+
     private static final String USUARIO_LOGADO_LOG_MESSAGE = "USUARIO LOGADO: {}";
 
     @GetMapping("/usuarios")
@@ -39,14 +43,15 @@ public class UsuarioResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario = this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN)) {
-            List<UserDTO> users = authService.findAllUsers();
+            List<UserDTO> users = authService.findAllUsers(usuario.getEmpresaCNPJ());
             return ResponseEntity.ok(users);
         } else {
-            log.info("Usuário não possui permissão para listar usuários.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar usuários.");
+            log.info(USUARIO_SEM_PERISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERISSAO_READ);
         }
     }
 
@@ -57,14 +62,19 @@ public class UsuarioResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario = this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN)) {
-            UserDTO user = authService.findUserByUsername(username);
-            return ResponseEntity.ok(user);
+            UserDTO user = authService.findUserByUsernameAndEmpresaCNPJ(username, usuario.getEmpresaCNPJ());
+            if (user.getUsername() == null) {
+                return ResponseEntity.notFound().build();
+            } else {
+                return ResponseEntity.ok(user);
+            }
         } else {
-            log.info("Usuário não possui permissão para listar usuários.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar usuários.");
+            log.info(USUARIO_SEM_PERISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERISSAO_READ);
         }
     }
 
@@ -79,15 +89,15 @@ public class UsuarioResource {
         Set<PermissaoEnum> permissoesUsuario = userLogado.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN)) {
-            UserDTO user = authService.updateUser(id, userDTO);
+            UserDTO user = authService.updateUser(id, userDTO, userLogado.getEmpresaCNPJ());
             if (user == null) {
                 log.info("Usuário não encontrado.");
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(user);
         } else {
-            log.info("Usuário não possui permissão para atualizar usuários.");
-            throw new MissingPermissionsException("Usuário não possui permissão para atualizar usuários.");
+            log.info(USUARIO_SEM_PERISSAO_UPDATE);
+            throw new MissingPermissionsException(USUARIO_SEM_PERISSAO_UPDATE);
         }
     }
 
@@ -98,18 +108,19 @@ public class UsuarioResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario = this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN)) {
-            UserDTO user = authService.deleteUser(id);
+            UserDTO user = authService.deleteUser(id, usuario.getEmpresaCNPJ());
             if (user == null) {
                 log.info("Usuário não encontrado.");
                 return ResponseEntity.notFound().build();
             }
             return ResponseEntity.ok(user);
         } else {
-            log.info("Usuário não possui permissão para deletar usuários.");
-            throw new MissingPermissionsException("Usuário não possui permissão para deletar usuários.");
+            log.info(USUARIO_SEM_PERISSAO_DELETE);
+            throw new MissingPermissionsException(USUARIO_SEM_PERISSAO_DELETE);
         }
     }
 

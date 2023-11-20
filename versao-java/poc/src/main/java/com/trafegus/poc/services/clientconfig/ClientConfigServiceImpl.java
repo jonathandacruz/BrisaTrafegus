@@ -15,8 +15,8 @@ public class ClientConfigServiceImpl implements ClientConfigService {
     private ClientConfigRepository clientConfigRepository;
 
     @Override
-    public List<ClientConfig> findAll() {
-        return clientConfigRepository.findAll();
+    public List<ClientConfig> findAll(String empresaCNPJ) {
+        return clientConfigRepository.findAllByEmpresaCNPJ(empresaCNPJ);
     }
 
     @Override

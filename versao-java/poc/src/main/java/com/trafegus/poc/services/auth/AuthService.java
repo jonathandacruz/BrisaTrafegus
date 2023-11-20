@@ -9,8 +9,9 @@ import java.util.List;
 public interface AuthService {
     UserDTO createUser(SignupDTO signupDTO);
     UserDTO findUserByUsername(String username);
-    List<UserDTO> findAllUsers();
-    UserDTO updateUser(Long id, UserDTO userDTO);
-    UserDTO deleteUser(Long id);
+    UserDTO findUserByUsernameAndEmpresaCNPJ(String username, String empresaCNPJ);
+    List<UserDTO> findAllUsers(String empresaCNPJ);
+    UserDTO updateUser(Long id, UserDTO userDTO, String empresaCNPJ);
+    UserDTO deleteUser(Long id, String empresaCNPJ);
     UserDTO changePassword(PasswordDTO passwordDTO);
 }

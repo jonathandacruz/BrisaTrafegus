@@ -8,6 +8,7 @@ import com.trafegus.poc.dto.UserDTO;
 import com.trafegus.poc.model.User;
 import com.trafegus.poc.repository.UserRepository;
 import com.trafegus.poc.web.exceptions.CPFInvalidoException;
+import com.trafegus.poc.web.exceptions.MissingPermissionsException;
 import com.trafegus.poc.web.exceptions.PasswordException;
 import lombok.extern.slf4j.Slf4j;
 import org.modelmapper.ModelMapper;
@@ -18,6 +19,7 @@ import org.springframework.stereotype.Service;
 import java.time.LocalDateTime;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Objects;
 
 @Service
 @Slf4j
@@ -99,9 +101,9 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public List<UserDTO> findAllUsers() {
+    public List<UserDTO> findAllUsers(String empresaCNPJ) {
         log.info("Listando todos os usuários.");
-        List<User> users = userRepository.findAll();
+        List<User> users = userRepository.findAllByEmpresaCNPJ(empresaCNPJ);
         List<UserDTO> userDTOS = new ArrayList<>();
         users.forEach(user -> {
             UserDTO userDTO = new UserDTO();
@@ -112,11 +114,16 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDTO updateUser(Long id, UserDTO userDTO) {
+    public UserDTO updateUser(Long id, UserDTO userDTO, String empresaCNPJ) {
         User usuario = this.userRepository.findById(id).orElse(null);
         if (usuario == null) {
             return null;
         } else {
+            log.info("Checando se o usuário que está atualizando é da mesma empresa do usuário que está sendo atualizado.");
+            if (!usuario.getEmpresaCNPJ().equals(empresaCNPJ)) {
+                log.info("Usuário não pertence a mesma empresa do usuário que está atualizando.");
+                return null;
+            }
             log.info("Atualizando usuário: {}", usuario);
             log.info("Novas informações: {}", userDTO);
             this.modelMapper.getConfiguration().setSkipNullEnabled(true);
@@ -131,15 +138,20 @@ public class AuthServiceImpl implements AuthService {
     }
 
     @Override
-    public UserDTO deleteUser(Long id) {
+    public UserDTO deleteUser(Long id, String empresaCNPJ) {
         User user = userRepository.findById(id).orElse(null);
         log.info("Deletando usuário: {}", user);
         if (user != null) {
-            userRepository.delete(user);
-            UserDTO userDTO = new UserDTO();
-            userDTO.setId(user.getId());
-            userDTO.setUsername(user.getUsername());
-            return userDTO;
+            if (Objects.equals(user.getEmpresaCNPJ(), empresaCNPJ)) {
+                userRepository.delete(user);
+                UserDTO userDTO = new UserDTO();
+                userDTO.setId(user.getId());
+                userDTO.setUsername(user.getUsername());
+                return userDTO;
+            } else {
+                log.info("Usuário não pertence a mesma empresa do usuário que está deletando.");
+                return null;
+            }
         }
         return null;
     }
@@ -148,6 +160,16 @@ public class AuthServiceImpl implements AuthService {
     public UserDTO findUserByUsername(String username) {
         UserDTO userDTO = new UserDTO();
         User user = userRepository.findFirstByUsername(username);
+        if (user != null) {
+            userDTO = this.createUserDTO(user);
+        }
+        return userDTO;
+    }
+
+    @Override
+    public UserDTO findUserByUsernameAndEmpresaCNPJ(String username, String empresaCNPJ) {
+        UserDTO userDTO = new UserDTO();
+        User user = userRepository.findFirstByUsernameAndEmpresaCNPJ(username, empresaCNPJ);
         if (user != null) {
             userDTO = this.createUserDTO(user);
         }

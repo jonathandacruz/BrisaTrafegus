@@ -1,5 +1,6 @@
 package com.trafegus.poc.web.rest;
 
+import com.trafegus.poc.dto.UserDTO;
 import com.trafegus.poc.model.Log;
 import com.trafegus.poc.model.PermissaoEnum;
 import com.trafegus.poc.services.auth.AuthServiceImpl;
@@ -16,6 +17,7 @@ import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
+import java.util.Objects;
 import java.util.Set;
 
 @Slf4j
@@ -39,10 +41,11 @@ public class PocResource {
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
 
-        Set<PermissaoEnum> permissoesUsuario =
-                this.authService.findUserByUsername(authentication.getName()).getPermissoes();
+        UserDTO usuario = this.authService.findUserByUsername(authentication.getName());
+        Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
-        if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.SEND_LOGS)) {
+        if ((permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.SEND_LOGS)) &&
+                (Objects.equals(usuario.getEmpresaCNPJ(), logReceived.getEmpresaCNPJ()))) {
 
             Boolean shouldProcess = this.pocService.processLog(logReceived);
 

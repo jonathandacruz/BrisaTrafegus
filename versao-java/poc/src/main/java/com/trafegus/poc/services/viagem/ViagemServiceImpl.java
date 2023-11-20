@@ -15,8 +15,8 @@ public class ViagemServiceImpl implements ViagemService {
     private ViagemRepository viagemRepository;
 
     @Override
-    public List<Viagem> findAll() {
-        return viagemRepository.findAll();
+    public List<Viagem> findAll(String empresaCNPJ) {
+        return viagemRepository.findAllByEmpresaCNPJ(empresaCNPJ);
     }
 
     @Override
@@ -34,8 +34,12 @@ public class ViagemServiceImpl implements ViagemService {
     @Override
     public Viagem marcarViagemComoSinistro(UUID id) {
         Viagem viagem = viagemRepository.findById(id).orElse(null);
-        viagem.setSinistro(true);
-        return viagemRepository.save(viagem);
+        if (viagem != null) {
+            viagem.setSinistro(true);
+            return viagemRepository.save(viagem);
+        } else {
+            return null;
+        }
     }
 
 }

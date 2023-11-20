@@ -89,16 +89,11 @@ public class ViagemResource {
         Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.VIAGEM_READ)) {
-            List<Viagem> viagens = viagemService.findAll();
+            List<Viagem> viagens = viagemService.findAll(usuario.getEmpresaCNPJ());
 
             if (viagens.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
-                viagens.forEach(viagem -> {
-                    if (!Objects.equals(viagem.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
-                        viagens.remove(viagem);
-                    }
-                });
                 return ResponseEntity.ok().body(viagens);
             }
         } else {
@@ -145,9 +140,13 @@ public class ViagemResource {
             Viagem viagem = viagemService.findOne(id);
             if (Objects.equals(viagem.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
                 Viagem viagemSinistro = viagemService.marcarViagemComoSinistro(id);
-                return ResponseEntity.ok().body(viagemSinistro);
+                if (viagemSinistro != null) {
+                    return ResponseEntity.ok().body(viagemSinistro);
+                } else {
+                    return ResponseEntity.notFound().build();
+                }
             } else {
-                return null;
+                return ResponseEntity.notFound().build();
             }
         } else {
             log.info(USUARIO_SEM_PERMISSAO_SINISTRO);

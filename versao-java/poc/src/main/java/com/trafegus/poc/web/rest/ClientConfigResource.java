@@ -94,19 +94,11 @@ public class ClientConfigResource {
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_READ)) {
 
-            List<ClientConfig> clientConfigs = clientConfigService.findAll();
+            List<ClientConfig> clientConfigs = clientConfigService.findAll(usuario.getEmpresaCNPJ());
 
             if (clientConfigs.isEmpty()) {
                 return ResponseEntity.notFound().build();
             } else {
-                clientConfigs.forEach(clientConfig -> {
-                    if (!Objects.equals(clientConfig.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
-                        clientConfigs.remove(clientConfig);
-                    }
-                });
-                if (clientConfigs.isEmpty()) {
-                    return ResponseEntity.notFound().build();
-                }
                 return ResponseEntity.ok().body(clientConfigs);
             }
         } else {

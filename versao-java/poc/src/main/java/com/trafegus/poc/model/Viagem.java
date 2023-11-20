@@ -36,4 +36,5 @@ public class Viagem {
     private LocalDateTime inicioViagem;
     private LocalDateTime fimViagem;
     private List<RegraQuebrada> regrasQuebradas;
+    private List<Integer> codigosQuebrados;
 }

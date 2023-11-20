@@ -4,6 +4,7 @@ import com.trafegus.poc.model.ClientConfig;
 import com.trafegus.poc.model.ClientConfigRedis;
 import com.trafegus.poc.model.Log;
 import com.trafegus.poc.model.RegraQuebrada;
+import com.trafegus.poc.model.Regras;
 import com.trafegus.poc.model.Viagem;
 import com.trafegus.poc.repository.ClientConfigRedisRepository;
 import com.trafegus.poc.repository.ClientConfigRepository;
@@ -19,7 +20,7 @@ import java.util.Optional;
 
 @Slf4j
 @Service
-public class PocServiceImpl implements PocService{
+public class PocServiceImpl implements PocService {
 
     @Autowired
     private ClientConfigRepository clientConfigRepository;
@@ -30,58 +31,14 @@ public class PocServiceImpl implements PocService{
     @Autowired
     private ViagemRepository viagemRepository;
 
-    @Override
     public Boolean processLog(Log logRecebido) {
-
-        Optional<ClientConfigRedis> clientConfigRedis =
-                this.clientConfigRedisRepository.findById(logRecebido.getEmpresaCNPJ());
+        Optional<ClientConfigRedis> clientConfigRedis = getClientConfig(logRecebido.getEmpresaCNPJ());
 
         if (clientConfigRedis.isPresent()) {
             ClientConfigRedis presentClientConfigRedis = clientConfigRedis.get();
-            if (presentClientConfigRedis.getCodigosImportantes().contains(logRecebido.getCodigo())) {
-                log.info("Log que deveria ser processado recebido = [{}]", logRecebido);
-
-                List<ClientConfig> clientConfigs =
-                        this.clientConfigRepository.findClientConfigByRegrasContaining(logRecebido.getCodigo());
-                Optional<Viagem> viagemOptional = viagemRepository.findByCodigoViagem(logRecebido.getCodigoViagem());
-
-                if (viagemOptional.isPresent() && !clientConfigs.isEmpty()) {
-                    log.info("Viagem encontrada, verificando regra quebrada...");
-                    Viagem viagem = viagemOptional.get();
-                    viagem.setUltimaRegraQuebrada(LocalDateTime.now());
-                    List<RegraQuebrada> regrasQuebradas = new ArrayList<>();
-                    clientConfigs.forEach(config -> {
-                        RegraQuebrada regraQuebrada = new RegraQuebrada(null, null, null, new ArrayList<>(), null);
-                        config.getRegras().forEach(regra -> {
-                            if (regra.getCodigos().contains(logRecebido.getCodigo())) {
-                                log.info("Regra quebrada encontrada = [{}]", regra);
-                                regraQuebrada.setRegraQuebradaId(config.getId());
-                                regraQuebrada.setTipoRegra(config.getTipo());
-                                regraQuebrada.setDataHoraRegraQuebrada(LocalDateTime.now());
-                                regraQuebrada.getCodigosRegrasQuebradas().add(logRecebido.getCodigo());
-                                regraQuebrada.setRiscoRegrasQuebradas(
-                                        Integer.valueOf(regra.getPorcentagem()));
-                            }
-                        });
-                        regrasQuebradas.add(regraQuebrada);
-                        log.info("Regra quebrada adicionada = [{}]", regraQuebrada);
-                    });
-
-                    viagem.getRegrasQuebradas().addAll(regrasQuebradas);
-
-                    viagem.getRegrasQuebradas().forEach(regraQuebrada -> {
-                        if (regraQuebrada.getRiscoRegrasQuebradas() > viagem.getRiscoAtualPorcentagem()) {
-                            viagem.setRiscoAtualPorcentagem(regraQuebrada.getRiscoRegrasQuebradas());
-                            viagem.setRiscoAtualTipoSinistro(regraQuebrada.getTipoRegra());
-                        }
-                    });
-                    log.info("Viagem atualizada = [{}]", viagem);
-                    this.viagemRepository.save(viagem);
-                    return true;
-                } else {
-                    log.info("Viagem nao encontrada ou lista de configurações vazia");
-                    return false;
-                }
+            if (isLogImportante(logRecebido, presentClientConfigRedis)) {
+                this.processLogImportante(logRecebido);
+                return true;
             } else {
                 log.info("Log não importante recebido, ignorando... = [{}]", logRecebido);
                 return false;
@@ -91,4 +48,80 @@ public class PocServiceImpl implements PocService{
             return false;
         }
     }
+
+    private Optional<ClientConfigRedis> getClientConfig(String empresaCNPJ) {
+        return clientConfigRedisRepository.findById(empresaCNPJ);
+    }
+
+    private boolean isLogImportante(Log logRecebido, ClientConfigRedis clientConfigRedis) {
+        return clientConfigRedis.getCodigosImportantes().contains(logRecebido.getCodigo());
+    }
+
+    private void processLogImportante(Log logRecebido) {
+        List<ClientConfig> clientConfigs = getClientConfigs(logRecebido.getCodigo(), logRecebido.getEmpresaCNPJ());
+        Optional<Viagem> viagemOptional = viagemRepository.findByCodigoViagemAndEmpresaCNPJ(logRecebido.getCodigoViagem(), logRecebido.getEmpresaCNPJ());
+
+        if (viagemOptional.isPresent() && !clientConfigs.isEmpty()) {
+            Viagem viagem = viagemOptional.get();
+            this.updateViagemWithBrokenRules(logRecebido, clientConfigs, viagem);
+            viagemRepository.save(viagem);
+        } else {
+            log.info("Viagem não encontrada ou lista de configurações vazia");
+        }
+    }
+
+    private List<ClientConfig> getClientConfigs(Integer codigo, String empresaCNPJ) {
+        return clientConfigRepository.findClientConfigByRegrasContainingAndEmpresaCNPJ(codigo, empresaCNPJ);
+    }
+
+    private void updateViagemWithBrokenRules(Log logRecebido, List<ClientConfig> clientConfigs, Viagem viagem) {
+        viagem.setUltimaRegraQuebrada(LocalDateTime.now());
+        List<RegraQuebrada> regrasQuebradas = new ArrayList<>();
+
+        clientConfigs.forEach(config -> {
+            RegraQuebrada regraQuebrada = findBrokenRule(logRecebido, config);
+            if (regraQuebrada != null) {
+                regrasQuebradas.add(regraQuebrada);
+                log.info("Regra quebrada adicionada = [{}]", regraQuebrada);
+            }
+        });
+
+        viagem.getRegrasQuebradas().addAll(regrasQuebradas);
+
+        this.updateViagemRisk(viagem);
+        log.info("Viagem atualizada = [{}]", viagem);
+    }
+
+    private RegraQuebrada findBrokenRule(Log logRecebido, ClientConfig config) {
+        RegraQuebrada regraQuebrada = null;
+        for (Regras regra : config.getRegras()) {
+            if (regra.getCodigos().contains(logRecebido.getCodigo())) {
+                regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
+                log.info("Regra quebrada encontrada = [{}]", regra);
+                break;
+            }
+        }
+        return regraQuebrada;
+    }
+
+    private RegraQuebrada createRegraQuebrada(Log logRecebido, ClientConfig config, Regras regra) {
+        RegraQuebrada regraQuebrada = new RegraQuebrada(null, null, null, new ArrayList<>(), null);
+        regraQuebrada.setRegraQuebradaId(config.getId());
+        regraQuebrada.setTipoRegra(config.getTipo());
+        regraQuebrada.setDataHoraRegraQuebrada(LocalDateTime.now());
+        regraQuebrada.getCodigosRegrasQuebradas().add(logRecebido.getCodigo());
+        regraQuebrada.setRiscoRegrasQuebradas(Integer.valueOf(regra.getPorcentagem()));
+        return regraQuebrada;
+    }
+
+    private void updateViagemRisk(Viagem viagem) {
+        viagem.getRegrasQuebradas().forEach(regraQuebrada -> {
+            if (regraQuebrada.getRiscoRegrasQuebradas() > viagem.getRiscoAtualPorcentagem()) {
+                viagem.setRiscoAtualPorcentagem(regraQuebrada.getRiscoRegrasQuebradas());
+                viagem.setRiscoAtualTipoSinistro(regraQuebrada.getTipoRegra());
+            }
+        });
+    }
+
+
 }

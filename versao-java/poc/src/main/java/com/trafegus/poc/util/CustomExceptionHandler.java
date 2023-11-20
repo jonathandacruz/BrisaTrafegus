@@ -19,7 +19,7 @@ import java.util.Map;
 @Slf4j
 public class CustomExceptionHandler {
 
-    private static final String MESSAGE = "mensagem: {}";
+    private static final String MESSAGE = "mensagem: ";
 
     @ExceptionHandler(MissingPermissionsException.class)
     @ResponseStatus(HttpStatus.FORBIDDEN)

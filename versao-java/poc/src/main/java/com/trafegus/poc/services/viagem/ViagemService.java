@@ -6,7 +6,7 @@ import java.util.List;
 import java.util.UUID;
 
 public interface ViagemService {
-    List<Viagem> findAll();
+    List<Viagem> findAll(String empresaCNPJ);
     Viagem findOne(UUID id);
     Viagem createOne(Viagem viagem);
     Viagem marcarViagemComoSinistro(UUID id);
