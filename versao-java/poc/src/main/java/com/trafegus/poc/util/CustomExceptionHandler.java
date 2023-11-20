@@ -1,6 +1,7 @@
 package com.trafegus.poc.util;
 
 import com.trafegus.poc.web.exceptions.CPFInvalidoException;
+import com.trafegus.poc.web.exceptions.MissingPermissionsException;
 import com.trafegus.poc.web.exceptions.PasswordException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.http.HttpStatus;
@@ -18,11 +19,21 @@ import java.util.Map;
 @Slf4j
 public class CustomExceptionHandler {
 
+    private static final String MESSAGE = "mensagem: {}";
+
+    @ExceptionHandler(MissingPermissionsException.class)
+    @ResponseStatus(HttpStatus.FORBIDDEN)
+    public ResponseEntity<Map<String, String>> handleMissingPermissionsException(MissingPermissionsException ex) {
+        Map<String, String> errors = new HashMap<>();
+        errors.put(MESSAGE, ex.getMessage());
+        return ResponseEntity.status(HttpStatus.FORBIDDEN).body(errors);
+    }
+
     @ExceptionHandler(BadCredentialsException.class)
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleBadCredentialsException(BadCredentialsException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
+        errors.put(MESSAGE, ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
 
@@ -30,7 +41,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handlePasswordException(PasswordException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
+        errors.put(MESSAGE, ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
 
@@ -38,7 +49,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleValidationExceptions(MethodArgumentNotValidException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("message", "Erro no campo: " + ex.getMessage());
+        errors.put(MESSAGE, "Erro no campo: " + ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
 
@@ -46,7 +57,7 @@ public class CustomExceptionHandler {
     @ResponseStatus(HttpStatus.BAD_REQUEST)
     public ResponseEntity<Map<String, String>> handleCPFInvalidoException(CPFInvalidoException ex) {
         Map<String, String> errors = new HashMap<>();
-        errors.put("message", ex.getMessage());
+        errors.put(MESSAGE, ex.getMessage());
         return ResponseEntity.badRequest().body(errors);
     }
 

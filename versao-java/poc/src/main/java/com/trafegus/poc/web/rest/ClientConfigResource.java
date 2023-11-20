@@ -2,6 +2,7 @@ package com.trafegus.poc.web.rest;
 
 import com.trafegus.poc.dto.UserDTO;
 import com.trafegus.poc.model.ClientConfig;
+import com.trafegus.poc.model.ClientConfigDTO;
 import com.trafegus.poc.model.ClientConfigRedis;
 import com.trafegus.poc.model.PermissaoEnum;
 import com.trafegus.poc.services.auth.AuthServiceImpl;
@@ -9,6 +10,7 @@ import com.trafegus.poc.services.clientconfig.ClientConfigRedisServiceImpl;
 import com.trafegus.poc.services.clientconfig.ClientConfigServiceImpl;
 import com.trafegus.poc.web.exceptions.MissingPermissionsException;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -42,7 +44,13 @@ public class ClientConfigResource {
     @Autowired
     private AuthServiceImpl authService;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     private static final String USUARIO_LOGADO_LOG_MESSAGE = "USUARIO LOGADO: {}";
+    private static final String USUARIO_SEM_PERMISSAO_READ = "Usuário não possui permissão para listar configurações.";
+    private static final String USUARIO_SEM_PERMISSAO_WRITE = "Usuário não possui permissão para criar configurações.";
+    private static final String USUARIO_SEM_PERMISSAO_DELETE = "Usuário não possui permissão para deletar configurações.";
 
     @GetMapping("/configs/{id}")
     public ResponseEntity<ClientConfig> getOneConfigEndpoint(@PathVariable UUID id) {
@@ -69,8 +77,8 @@ public class ClientConfigResource {
                 }
             }
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_READ);
         }
     }
 
@@ -102,14 +110,14 @@ public class ClientConfigResource {
                 return ResponseEntity.ok().body(clientConfigs);
             }
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_READ);
         }
     }
 
     @PostMapping("/configs")
-    public ResponseEntity<ClientConfig> createConfigEndpoint(@RequestBody ClientConfig clientConfig) {
-        log.info("Rest request for creating client config: {}", clientConfig.toString());
+    public ResponseEntity<ClientConfig> createConfigEndpoint(@RequestBody ClientConfigDTO clientConfigDTO) {
+        log.info("Rest request for creating client config: {}", clientConfigDTO.toString());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
@@ -119,6 +127,7 @@ public class ClientConfigResource {
         Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.CONFIG_WRITE)) {
+            ClientConfig clientConfig = this.modelMapper.map(clientConfigDTO, ClientConfig.class);
 
             clientConfig.setEmpresaCNPJ(usuario.getEmpresaCNPJ());
 
@@ -140,8 +149,8 @@ public class ClientConfigResource {
 
             return ResponseEntity.ok().body(createdClientConfig);
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_WRITE);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_WRITE);
         }
     }
 
@@ -171,8 +180,8 @@ public class ClientConfigResource {
                 return ResponseEntity.notFound().build();
             }
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_DELETE);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_DELETE);
         }
     }
 

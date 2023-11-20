@@ -3,10 +3,12 @@ package com.trafegus.poc.web.rest;
 import com.trafegus.poc.dto.UserDTO;
 import com.trafegus.poc.model.PermissaoEnum;
 import com.trafegus.poc.model.Viagem;
+import com.trafegus.poc.model.ViagemDTO;
 import com.trafegus.poc.services.auth.AuthServiceImpl;
 import com.trafegus.poc.services.viagem.ViagemServiceImpl;
 import com.trafegus.poc.web.exceptions.MissingPermissionsException;
 import lombok.extern.slf4j.Slf4j;
+import org.modelmapper.ModelMapper;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
@@ -37,7 +39,14 @@ public class ViagemResource {
     @Autowired
     private AuthServiceImpl authService;
 
+    @Autowired
+    private ModelMapper modelMapper;
+
     private static final String USUARIO_LOGADO_LOG_MESSAGE = "USUARIO LOGADO: {}";
+    private static final String USUARIO_SEM_PERMISSAO_READ = "Usuário não possui permissão para listar viagens.";
+    private static final String USUARIO_SEM_PERMISSAO_WRITE = "Usuário não possui permissão para criar viagens.";
+    private static final String USUARIO_SEM_PERMISSAO_SINISTRO = "Usuário não possui permissão para deletar viagens.";
+
 
     @GetMapping("/viagens/{id}")
     public ResponseEntity<Viagem> getOneViagemEndpoint(@PathVariable UUID id) {
@@ -63,8 +72,8 @@ public class ViagemResource {
                 }
             }
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_READ);
         }
     }
 
@@ -93,14 +102,14 @@ public class ViagemResource {
                 return ResponseEntity.ok().body(viagens);
             }
         } else {
-            log.info("Usuário não possui permissão para listar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para listar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_READ);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_READ);
         }
     }
 
     @PostMapping("/viagens")
-    public ResponseEntity<Viagem> createOneViagemEndpoint(@RequestBody Viagem viagem) {
-        log.info("Rest request for creating Viagem: {}", viagem.toString());
+    public ResponseEntity<Viagem> createOneViagemEndpoint(@RequestBody ViagemDTO viagemDTO) {
+        log.info("Rest request for creating Viagem: {}", viagemDTO.toString());
 
         Authentication authentication = SecurityContextHolder.getContext().getAuthentication();
         log.info(USUARIO_LOGADO_LOG_MESSAGE, authentication.getName());
@@ -110,12 +119,13 @@ public class ViagemResource {
         Set<PermissaoEnum> permissoesUsuario = usuario.getPermissoes();
 
         if (permissoesUsuario.contains(PermissaoEnum.ADMIN) || permissoesUsuario.contains(PermissaoEnum.VIAGEM_WRITE)) {
+            Viagem viagem = this.modelMapper.map(viagemDTO, Viagem.class);
             viagem.setEmpresaCNPJ(usuario.getEmpresaCNPJ());
             Viagem createdViagem = viagemService.createOne(viagem);
             return ResponseEntity.ok().body(createdViagem);
         } else {
-            log.info("Usuário não possui permissão para criar viagens.");
-            throw new MissingPermissionsException("Usuário não possui permissão para criar viagens.");
+            log.info(USUARIO_SEM_PERMISSAO_WRITE);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_WRITE);
         }
     }
 
@@ -140,8 +150,8 @@ public class ViagemResource {
                 return null;
             }
         } else {
-            log.info("Usuário não possui permissão para marcar viagens como sinistro.");
-            throw new MissingPermissionsException("Usuário não possui permissão para marcar viagens como sinistro.");
+            log.info(USUARIO_SEM_PERMISSAO_SINISTRO);
+            throw new MissingPermissionsException(USUARIO_SEM_PERMISSAO_SINISTRO);
         }
     }
 
