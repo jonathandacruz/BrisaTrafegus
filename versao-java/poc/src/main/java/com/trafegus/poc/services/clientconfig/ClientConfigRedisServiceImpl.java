@@ -10,7 +10,6 @@ import org.springframework.stereotype.Service;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Optional;
-import java.util.UUID;
 
 @Slf4j
 @Service
@@ -25,14 +24,14 @@ public class ClientConfigRedisServiceImpl implements ClientConfigRedisService {
     }
 
     @Override
-    public ClientConfigRedis findOne(UUID id) {
+    public ClientConfigRedis findOne(String id) {
         return clientConfigRedisRepository.findById(id).orElse(null);
     }
 
     @Override
     public ClientConfigRedis createOne(ClientConfig clientConfig) {
         ClientConfigRedis clientConfigRedis = new ClientConfigRedis();
-        clientConfigRedis.setId(clientConfig.getEmpresaId());
+        clientConfigRedis.setId(clientConfig.getEmpresaCNPJ());
         clientConfigRedis.setCodigosImportantes(new ArrayList<>());
         clientConfig.getRegras().forEach(regra -> regra.getCodigos().forEach(codigo -> clientConfigRedis.getCodigosImportantes().add(codigo)));
         clientConfigRedis.setConfiguracoes(List.of(clientConfig));
@@ -52,7 +51,7 @@ public class ClientConfigRedisServiceImpl implements ClientConfigRedisService {
     }
 
     @Override
-    public Boolean deleteOneConfig(UUID id, ClientConfig clientConfig) {
+    public Boolean deleteOneConfig(String id, ClientConfig clientConfig) {
         Optional<ClientConfigRedis> clientConfigRedisOptional = clientConfigRedisRepository.findById(id);
         if (clientConfigRedisOptional.isPresent()) {
             ClientConfigRedis clientConfigRedis = clientConfigRedisOptional.get();

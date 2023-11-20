@@ -34,7 +34,7 @@ public class PocServiceImpl implements PocService{
     public Boolean processLog(Log logRecebido) {
 
         Optional<ClientConfigRedis> clientConfigRedis =
-                this.clientConfigRedisRepository.findById(logRecebido.getEmpresaId());
+                this.clientConfigRedisRepository.findById(logRecebido.getEmpresaCNPJ());
 
         if (clientConfigRedis.isPresent()) {
             ClientConfigRedis presentClientConfigRedis = clientConfigRedis.get();

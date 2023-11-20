@@ -1,6 +1,5 @@
 package com.trafegus.poc.model;
 
-import jakarta.persistence.Entity;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
@@ -20,7 +19,6 @@ public class ClientConfig {
 
     @Id
     private UUID id;
-    private UUID empresaId;
     private String empresaCNPJ;
     private String tipo;
     private List<Regras> regras;

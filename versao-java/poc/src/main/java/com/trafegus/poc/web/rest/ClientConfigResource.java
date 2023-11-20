@@ -134,7 +134,7 @@ public class ClientConfigResource {
             ClientConfig createdClientConfig = clientConfigService.createOne(clientConfig);
             log.info("Created config: {} in mongo.", createdClientConfig.toString());
 
-            ClientConfigRedis redisConfig = this.clientConfigRedisService.findOne(createdClientConfig.getEmpresaId());
+            ClientConfigRedis redisConfig = this.clientConfigRedisService.findOne(createdClientConfig.getEmpresaCNPJ());
 
             if (redisConfig == null) {
                 ClientConfigRedis newRedisConfig = clientConfigRedisService.createOne(createdClientConfig);
@@ -168,7 +168,7 @@ public class ClientConfigResource {
 
             ClientConfig clientConfig = clientConfigService.findOne(id);
             if (Objects.equals(clientConfig.getEmpresaCNPJ(), usuario.getEmpresaCNPJ())) {
-                Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaId(), clientConfig);
+                Boolean redisRemoved = clientConfigRedisService.deleteOneConfig(clientConfig.getEmpresaCNPJ(), clientConfig);
                 Boolean mongoDeleted = clientConfigService.deleteOne(id);
 
                 if (Boolean.TRUE.equals(redisRemoved && mongoDeleted)) {

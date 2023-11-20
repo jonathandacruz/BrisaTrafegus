@@ -5,14 +5,12 @@ import lombok.AllArgsConstructor;
 import lombok.Data;
 import lombok.NoArgsConstructor;
 
-import java.util.UUID;
-
 @Data
 @AllArgsConstructor
 @NoArgsConstructor
 public class Log {
 
-    private UUID empresaId;
+    private String empresaCNPJ;
 
     @JsonProperty("esis_oras_codigo")
     private String placaVeiculo;

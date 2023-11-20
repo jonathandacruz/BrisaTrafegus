@@ -5,12 +5,10 @@ import lombok.Data;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.UUID;
 
 @Data
 public class ViagemDTO {
 
-    private UUID empresaId;
     private String empresaCNPJ;
     private TipoViagemEnum tipoViagem;
     private List<ProdutoViagemEnum> produtoViagem;

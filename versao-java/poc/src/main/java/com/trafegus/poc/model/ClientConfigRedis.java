@@ -7,7 +7,6 @@ import lombok.NoArgsConstructor;
 import org.springframework.data.redis.core.RedisHash;
 
 import java.util.List;
-import java.util.UUID;
 
 @Data
 @AllArgsConstructor
@@ -16,7 +15,7 @@ import java.util.UUID;
 public class ClientConfigRedis {
 
     @Id
-    private UUID id;
+    private String id;
     private List<ClientConfig> configuracoes;
     private List<Integer> codigosImportantes;
 
