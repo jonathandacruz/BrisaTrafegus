@@ -22,6 +22,8 @@ public class Viagem {
     @Id
     private UUID id;
     private UUID empresaId;
+    private TipoViagemEnum tipoViagem;
+    private List<ProdutoViagemEnum> produtoViagem;
     private String empresaCNPJ;
     @JsonProperty("esis_oras_codigo")
     private String placaVeiculo;
