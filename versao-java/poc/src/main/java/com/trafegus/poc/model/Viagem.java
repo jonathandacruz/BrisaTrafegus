@@ -10,6 +10,7 @@ import org.springframework.data.mongodb.core.mapping.Document;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Set;
 import java.util.UUID;
 
 @Data
@@ -36,5 +37,13 @@ public class Viagem {
     private LocalDateTime inicioViagem;
     private LocalDateTime fimViagem;
     private List<RegraQuebrada> regrasQuebradas;
-    private List<Integer> codigosQuebrados;
+    private Set<Integer> codigosQuebrados;
+
+    public void addCodigoRecebido(int codigo) {
+        if (this.codigosQuebrados == null) {
+            this.codigosQuebrados = Set.of(codigo);
+            return;
+        }
+        codigosQuebrados.add(codigo);
+    }
 }

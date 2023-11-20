@@ -15,6 +15,7 @@ import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
 import java.util.ArrayList;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Optional;
 
@@ -75,14 +76,14 @@ public class PocServiceImpl implements PocService {
     }
 
     private void updateViagemWithBrokenRules(Log logRecebido, List<ClientConfig> clientConfigs, Viagem viagem) {
-        viagem.setUltimaRegraQuebrada(LocalDateTime.now());
         List<RegraQuebrada> regrasQuebradas = new ArrayList<>();
 
         clientConfigs.forEach(config -> {
-            RegraQuebrada regraQuebrada = findBrokenRule(logRecebido, config);
+            RegraQuebrada regraQuebrada = findBrokenRule(logRecebido, config, viagem);
             if (regraQuebrada != null) {
                 regrasQuebradas.add(regraQuebrada);
                 log.info("Regra quebrada adicionada = [{}]", regraQuebrada);
+                viagem.setUltimaRegraQuebrada(LocalDateTime.now());
             }
         });
 
@@ -92,14 +93,29 @@ public class PocServiceImpl implements PocService {
         log.info("Viagem atualizada = [{}]", viagem);
     }
 
-    private RegraQuebrada findBrokenRule(Log logRecebido, ClientConfig config) {
+    private RegraQuebrada findBrokenRule(Log logRecebido, ClientConfig config, Viagem viagem) {
         RegraQuebrada regraQuebrada = null;
         for (Regras regra : config.getRegras()) {
-            if (regra.getCodigos().contains(logRecebido.getCodigo())) {
-                regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
-                log.info("Regra quebrada encontrada = [{}]", regra);
-                break;
+            if (regra.getCodigos().size() == 1) {
+                if (regra.getCodigos().get(0).equals(logRecebido.getCodigo())) {
+                    regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
+                    log.info("Regra quebrada encontrada = [{}]", regra);
+                    break;
+                }
+            } else {
+                if (regra.getCodigos().contains(logRecebido.getCodigo())) {
+                    viagem.addCodigoRecebido(logRecebido.getCodigo());
+                    if (this.verificarSeTodosOsCodigosDaRegraForamQuebrados(viagem, regra)) {
+                        regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
+                        log.info("Regra quebrada encontrada = [{}]", regra);
+                        viagem.setCodigosQuebrados(new HashSet<>());
+                        break;
+                    } else {
+                        log.info("Regra encontrada não teve todos os códigos quebrados = [{}]", regra);
+                    }
+                }
             }
+
         }
         return regraQuebrada;
     }
@@ -121,6 +137,10 @@ public class PocServiceImpl implements PocService {
                 viagem.setRiscoAtualTipoSinistro(regraQuebrada.getTipoRegra());
             }
         });
+    }
+
+    private Boolean verificarSeTodosOsCodigosDaRegraForamQuebrados (Viagem viagem, Regras regra) {
+        return viagem.getCodigosQuebrados().containsAll(regra.getCodigos());
     }
 
 
