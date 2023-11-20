@@ -60,7 +60,9 @@ public class PocServiceImpl implements PocService {
 
     private void processLogImportante(Log logRecebido) {
         List<ClientConfig> clientConfigs = getClientConfigs(logRecebido.getCodigo(), logRecebido.getEmpresaCNPJ());
-        Optional<Viagem> viagemOptional = viagemRepository.findByCodigoViagemAndEmpresaCNPJ(logRecebido.getCodigoViagem(), logRecebido.getEmpresaCNPJ());
+        Optional<Viagem> viagemOptional =
+                viagemRepository.findByCodigoViagemAndEmpresaCNPJ(logRecebido.getCodigoViagem(),
+                        logRecebido.getEmpresaCNPJ());
 
         if (viagemOptional.isPresent() && !clientConfigs.isEmpty()) {
             Viagem viagem = viagemOptional.get();
@@ -96,36 +98,27 @@ public class PocServiceImpl implements PocService {
     private RegraQuebrada findBrokenRule(Log logRecebido, ClientConfig config, Viagem viagem) {
         RegraQuebrada regraQuebrada = null;
         for (Regras regra : config.getRegras()) {
-            if (regra.getCodigos().size() == 1) {
-                if (regra.getCodigos().get(0).equals(logRecebido.getCodigo())) {
-                    regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
+            if (regra.getCodigos().contains(logRecebido.getCodigo())) {
+                viagem.addCodigoRecebido(logRecebido.getCodigo());
+                if (this.verificarSeTodosOsCodigosDaRegraForamQuebrados(viagem, regra)) {
+                    regraQuebrada = createRegraQuebrada(config, regra);
                     log.info("Regra quebrada encontrada = [{}]", regra);
+                    viagem.setCodigosQuebrados(new HashSet<>());
                     break;
-                }
-            } else {
-                if (regra.getCodigos().contains(logRecebido.getCodigo())) {
-                    viagem.addCodigoRecebido(logRecebido.getCodigo());
-                    if (this.verificarSeTodosOsCodigosDaRegraForamQuebrados(viagem, regra)) {
-                        regraQuebrada = createRegraQuebrada(logRecebido, config, regra);
-                        log.info("Regra quebrada encontrada = [{}]", regra);
-                        viagem.setCodigosQuebrados(new HashSet<>());
-                        break;
-                    } else {
-                        log.info("Regra encontrada não teve todos os códigos quebrados = [{}]", regra);
-                    }
+                } else {
+                    log.info("Regra encontrada não teve todos os códigos quebrados = [{}]", regra);
                 }
             }
-
         }
         return regraQuebrada;
     }
 
-    private RegraQuebrada createRegraQuebrada(Log logRecebido, ClientConfig config, Regras regra) {
+    private RegraQuebrada createRegraQuebrada(ClientConfig config, Regras regra) {
         RegraQuebrada regraQuebrada = new RegraQuebrada(null, null, null, new ArrayList<>(), null);
         regraQuebrada.setRegraQuebradaId(config.getId());
         regraQuebrada.setTipoRegra(config.getTipo());
         regraQuebrada.setDataHoraRegraQuebrada(LocalDateTime.now());
-        regraQuebrada.getCodigosRegrasQuebradas().add(logRecebido.getCodigo());
+        regraQuebrada.getCodigosRegrasQuebradas().addAll(regra.getCodigos());
         regraQuebrada.setRiscoRegrasQuebradas(Integer.valueOf(regra.getPorcentagem()));
         return regraQuebrada;
     }
@@ -139,7 +132,7 @@ public class PocServiceImpl implements PocService {
         });
     }
 
-    private Boolean verificarSeTodosOsCodigosDaRegraForamQuebrados (Viagem viagem, Regras regra) {
+    private Boolean verificarSeTodosOsCodigosDaRegraForamQuebrados(Viagem viagem, Regras regra) {
         return viagem.getCodigosQuebrados().containsAll(regra.getCodigos());
     }
 
