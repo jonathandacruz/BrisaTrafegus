@@ -9,6 +9,7 @@ import com.trafegus.poc.model.Viagem;
 import com.trafegus.poc.repository.ClientConfigRedisRepository;
 import com.trafegus.poc.repository.ClientConfigRepository;
 import com.trafegus.poc.repository.ViagemRepository;
+import com.trafegus.poc.services.MessageService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -24,6 +25,9 @@ import java.util.Optional;
 public class PocServiceImpl implements PocService {
 
     @Autowired
+    private MessageService messageService;
+
+    @Autowired
     private ClientConfigRepository clientConfigRepository;
 
     @Autowired
@@ -34,7 +38,6 @@ public class PocServiceImpl implements PocService {
 
     public Boolean processLog(Log logRecebido) {
         Optional<ClientConfigRedis> clientConfigRedis = getClientConfig(logRecebido.getEmpresaCNPJ());
-
         if (clientConfigRedis.isPresent()) {
             ClientConfigRedis presentClientConfigRedis = clientConfigRedis.get();
             if (isLogImportante(logRecebido, presentClientConfigRedis)) {
@@ -104,6 +107,7 @@ public class PocServiceImpl implements PocService {
                     regraQuebrada = createRegraQuebrada(config, regra);
                     log.info("Regra quebrada encontrada = [{}]", regra);
                     viagem.setCodigosQuebrados(new HashSet<>());
+                    this.messageService.sendMessage(viagem.getId().toString());
                     break;
                 } else {
                     log.info("Regra encontrada não teve todos os códigos quebrados = [{}]", regra);
